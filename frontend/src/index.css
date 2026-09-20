@@ -1,0 +1,217 @@
+:root {
+  --color-primary: #E10600; /* Ferrari Rosso Corsa */
+  --color-primary-glow: rgba(225, 6, 0, 0.45);
+  --color-primary-hover: #ff1f1a;
+  --color-secondary: #0A0A0C; /* Carbon Black */
+  --color-dark-surface: #121217;
+  --color-dark-surface-elevated: #1a1a22;
+  --color-dark-card: rgba(18, 18, 23, 0.85);
+  --color-border: rgba(255, 255, 255, 0.08);
+  --color-border-hover: rgba(225, 6, 0, 0.5);
+  --color-text-main: #FFFFFF;
+  --color-text-muted: #8E8E9F;
+  --color-accent-yellow: #FFD700; /* Modena Giallo */
+  --color-accent-green: #00D084;
+  --color-carbon-texture: #141419;
+
+  --font-sans: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+  --radius-full: 9999px;
+
+  --shadow-glow: 0 0 25px rgba(225, 6, 0, 0.35);
+  --shadow-subtle: 0 10px 30px rgba(0, 0, 0, 0.6);
+  --glass-backdrop: blur(16px);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--color-secondary);
+  color: var(--color-text-main);
+  overflow-x: hidden;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #0a0a0c;
+}
+::-webkit-scrollbar-thumb {
+  background: #2a2a35;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-primary);
+}
+
+/* Base utilities */
+.container {
+  max-width: 1360px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.mono {
+  font-family: var(--font-mono);
+}
+
+.glow-text {
+  text-shadow: 0 0 20px rgba(225, 6, 0, 0.6);
+}
+
+.glow-border {
+  border: 1px solid var(--color-primary-glow);
+  box-shadow: 0 0 15px rgba(225, 6, 0, 0.2);
+}
+
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 0.95rem;
+  letter-spacing: 0.03em;
+  padding: 12px 24px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  border: none;
+  outline: none;
+  text-decoration: none;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #FF1E16 0%, #C70000 100%);
+  color: #FFFFFF;
+  box-shadow: 0 4px 20px rgba(225, 6, 0, 0.4);
+}
+.btn-primary:hover {
+  background: linear-gradient(135deg, #FF3B33 0%, #E10600 100%);
+  box-shadow: 0 6px 28px rgba(225, 6, 0, 0.6);
+  transform: translateY(-2px);
+}
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+.btn-secondary {
+  background: rgba(255, 255, 255, 0.05);
+  color: #FFFFFF;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  backdrop-filter: var(--glass-backdrop);
+}
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+}
+
+.btn-outline-red {
+  background: transparent;
+  color: var(--color-primary);
+  border: 1px solid var(--color-primary);
+}
+.btn-outline-red:hover {
+  background: var(--color-primary);
+  color: #FFFFFF;
+  box-shadow: 0 0 20px rgba(225, 6, 0, 0.4);
+}
+
+.btn-icon {
+  padding: 10px;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+  border: 1px solid var(--color-border);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.btn-icon:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+/* Glass panel */
+.glass-panel {
+  background: var(--color-dark-card);
+  backdrop-filter: var(--glass-backdrop);
+  -webkit-backdrop-filter: var(--glass-backdrop);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+/* Badges */
+.badge-ferrari {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(225, 6, 0, 0.12);
+  color: #FF3833;
+  border: 1px solid rgba(225, 6, 0, 0.3);
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.badge-yellow {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 215, 0, 0.12);
+  color: #FFD700;
+  border: 1px solid rgba(255, 215, 0, 0.3);
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+/* Animations */
+@keyframes pulseGlow {
+  0%, 100% {
+    box-shadow: 0 0 15px rgba(225, 6, 0, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(225, 6, 0, 0.7);
+  }
+}
+
+.pulse-glow {
+  animation: pulseGlow 2.5s infinite;
+}
+
+@keyframes floatAnim {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+.float-effect {
+  animation: floatAnim 4s ease-in-out infinite;
+}
