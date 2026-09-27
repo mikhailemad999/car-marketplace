@@ -6,12 +6,17 @@ import { Image } from './entities/image.entity';
 import { Payment } from './entities/payment.entity';
 import { Notification } from './entities/notification.entity';
 import { AuditLog } from './entities/audit-log.entity';
+import { Appointment } from './entities/appointment.entity';
+import { Favorite } from './entities/favorite.entity';
 
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { ListingsModule } from './listings/listings.module';
 import { PaymentsModule } from './payments/payments.module';
 import { AdminModule } from './admin/admin.module';
+import { NotificationsModule } from './notifications/notifications.module';
+import { AppointmentsModule } from './appointments/appointments.module';
+import { FavoritesModule } from './favorites/favorites.module';
 import { SeedModule } from './seed/seed.module';
 
 @Module({
@@ -23,7 +28,7 @@ import { SeedModule } from './seed/seed.module';
       username: process.env.DB_USERNAME || 'root',
       password: process.env.DB_PASSWORD || '1234',
       database: process.env.DB_NAME || 'supercar_marketplace',
-      entities: [User, Listing, Image, Payment, Notification, AuditLog],
+      entities: [User, Listing, Image, Payment, Notification, AuditLog, Appointment, Favorite],
       synchronize: true,
       logging: false,
     }),
@@ -32,6 +37,9 @@ import { SeedModule } from './seed/seed.module';
     ListingsModule,
     PaymentsModule,
     AdminModule,
+    NotificationsModule,
+    AppointmentsModule,
+    FavoritesModule,
     SeedModule,
   ],
 })

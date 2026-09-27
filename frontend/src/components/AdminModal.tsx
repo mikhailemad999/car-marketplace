@@ -17,6 +17,8 @@ import {
   Key,
   RefreshCw,
   Search,
+  Calendar,
+  Clock,
 } from 'lucide-react';
 
 interface AdminModalProps {
@@ -24,12 +26,13 @@ interface AdminModalProps {
 }
 
 export const AdminModal: React.FC<AdminModalProps> = ({ onClose }) => {
-  const [activeTab, setActiveTab] = useState<'analytics' | 'fleet' | 'users' | 'escrow'>('analytics');
+  const [activeTab, setActiveTab] = useState<'analytics' | 'fleet' | 'users' | 'escrow' | 'appointments' | 'audit'>('analytics');
   const [analytics, setAnalytics] = useState<any>(null);
   const [auditLogs, setAuditLogs] = useState<any[]>([]);
   const [listings, setListings] = useState<any[]>([]);
   const [users, setUsers] = useState<any[]>([]);
   const [payments, setPayments] = useState<any[]>([]);
+  const [appointments, setAppointments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -40,12 +43,13 @@ export const AdminModal: React.FC<AdminModalProps> = ({ onClose }) => {
       const token = localStorage.getItem('ferrari_token');
       const headers = { Authorization: `Bearer ${token}` };
 
-      const [anaRes, logRes, listRes, usrRes, payRes] = await Promise.all([
+      const [anaRes, logRes, listRes, usrRes, payRes, aptRes] = await Promise.all([
         fetch('http://localhost:4000/admin/analytics', { headers }),
-        fetch('http://localhost:4000/admin/audit-logs?limit=30', { headers }),
+        fetch('http://localhost:4000/admin/audit-logs?limit=50', { headers }),
         fetch('http://localhost:4000/admin/listings', { headers }),
         fetch('http://localhost:4000/admin/users', { headers }),
         fetch('http://localhost:4000/admin/payments', { headers }),
+        fetch('http://localhost:4000/appointments', { headers }),
       ]);
 
       if (anaRes.ok) setAnalytics(await anaRes.json());
@@ -53,6 +57,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({ onClose }) => {
       if (listRes.ok) setListings(await listRes.json());
       if (usrRes.ok) setUsers(await usrRes.json());
       if (payRes.ok) setPayments(await payRes.json());
+      if (aptRes.ok) setAppointments(await aptRes.json());
     } catch (err) {
       console.error('Failed to load admin dashboard data:', err);
     } finally {
@@ -312,6 +317,44 @@ export const AdminModal: React.FC<AdminModalProps> = ({ onClose }) => {
             }}
           >
             <DollarSign size={15} /> Escrow Ledger ({payments.length})
+          </button>
+
+          <button
+            onClick={() => setActiveTab('appointments')}
+            style={{
+              padding: '8px 16px',
+              borderRadius: '8px',
+              border: 'none',
+              background: activeTab === 'appointments' ? '#E10600' : 'rgba(255,255,255,0.05)',
+              color: '#fff',
+              fontSize: '0.82rem',
+              fontWeight: '700',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+            }}
+          >
+            <Calendar size={15} /> VIP Viewings ({appointments.length})
+          </button>
+
+          <button
+            onClick={() => setActiveTab('audit')}
+            style={{
+              padding: '8px 16px',
+              borderRadius: '8px',
+              border: 'none',
+              background: activeTab === 'audit' ? '#E10600' : 'rgba(255,255,255,0.05)',
+              color: '#fff',
+              fontSize: '0.82rem',
+              fontWeight: '700',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+            }}
+          >
+            <FileText size={15} /> Audit Trail ({auditLogs.length})
           </button>
         </div>
 
@@ -641,6 +684,140 @@ export const AdminModal: React.FC<AdminModalProps> = ({ onClose }) => {
                         </td>
                         <td style={{ padding: '12px 16px', color: '#888' }}>
                           {new Date(p.createdAt).toLocaleString()}
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 5: VIP Appointments */}
+        {activeTab === 'appointments' && (
+          <div>
+            <div style={{ background: 'rgba(0,0,0,0.4)', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.06)', overflow: 'hidden' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem', textAlign: 'left' }}>
+                <thead>
+                  <tr style={{ background: 'rgba(255,255,255,0.04)', color: '#8E8E9F', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+                    <th style={{ padding: '12px 16px' }}>Appt ID</th>
+                    <th style={{ padding: '12px 16px' }}>VIP Client</th>
+                    <th style={{ padding: '12px 16px' }}>Supercar Vehicle</th>
+                    <th style={{ padding: '12px 16px' }}>Date & Slot</th>
+                    <th style={{ padding: '12px 16px' }}>Location</th>
+                    <th style={{ padding: '12px 16px' }}>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {appointments.length === 0 ? (
+                    <tr>
+                      <td colSpan={6} style={{ padding: '24px', textAlign: 'center', color: '#888' }}>
+                        No private showroom viewing appointments booked yet.
+                      </td>
+                    </tr>
+                  ) : (
+                    appointments.map((a) => (
+                      <tr key={a.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                        <td style={{ padding: '12px 16px', color: '#888' }}>APT-{a.id}</td>
+                        <td style={{ padding: '12px 16px', fontWeight: '700', color: '#fff' }}>
+                          {a.user?.name || 'Client'}
+                          <div style={{ fontSize: '0.7rem', color: '#888' }}>{a.contactPhone || a.user?.email || 'N/A'}</div>
+                        </td>
+                        <td style={{ padding: '12px 16px', color: '#FFD700', fontWeight: '600' }}>
+                          {a.listing?.title || 'Ferrari Supercar'}
+                        </td>
+                        <td style={{ padding: '12px 16px', color: '#EEE' }}>
+                          <div>{a.preferredDate}</div>
+                          <div style={{ fontSize: '0.7rem', color: '#888' }}>{a.timeSlot}</div>
+                        </td>
+                        <td style={{ padding: '12px 16px', color: '#AAA', fontSize: '0.75rem' }}>
+                          {a.location || 'Maranello VIP Atelier'}
+                        </td>
+                        <td style={{ padding: '12px 16px' }}>
+                          <span
+                            style={{
+                              background: a.status === 'confirmed' ? 'rgba(0, 208, 132, 0.2)' : 'rgba(255, 215, 0, 0.2)',
+                              color: a.status === 'confirmed' ? '#00D084' : '#FFD700',
+                              padding: '3px 8px',
+                              borderRadius: '4px',
+                              fontSize: '0.72rem',
+                              fontWeight: '700',
+                              textTransform: 'uppercase',
+                            }}
+                          >
+                            {a.status}
+                          </span>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 6: Audit Trail */}
+        {activeTab === 'audit' && (
+          <div>
+            <div style={{ background: 'rgba(0,0,0,0.4)', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.06)', overflow: 'hidden' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem', textAlign: 'left' }}>
+                <thead>
+                  <tr style={{ background: 'rgba(255,255,255,0.04)', color: '#8E8E9F', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+                    <th style={{ padding: '12px 16px' }}>Audit ID</th>
+                    <th style={{ padding: '12px 16px' }}>Action Trigger</th>
+                    <th style={{ padding: '12px 16px' }}>Entity Ref</th>
+                    <th style={{ padding: '12px 16px' }}>Actor ID</th>
+                    <th style={{ padding: '12px 16px' }}>Event Details</th>
+                    <th style={{ padding: '12px 16px' }}>Timestamp</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {auditLogs.length === 0 ? (
+                    <tr>
+                      <td colSpan={6} style={{ padding: '24px', textAlign: 'center', color: '#888' }}>
+                        No audit log records found.
+                      </td>
+                    </tr>
+                  ) : (
+                    auditLogs.map((log) => (
+                      <tr key={log.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                        <td style={{ padding: '12px 16px', color: '#888', fontFamily: 'monospace' }}>#{log.id}</td>
+                        <td style={{ padding: '12px 16px' }}>
+                          <span
+                            style={{
+                              background: log.action && log.action.includes('PAYMENT')
+                                ? 'rgba(0, 208, 132, 0.15)'
+                                : log.action && log.action.includes('CREATE')
+                                ? 'rgba(225, 6, 0, 0.15)'
+                                : 'rgba(255, 215, 0, 0.15)',
+                              color: log.action && log.action.includes('PAYMENT')
+                                ? '#00D084'
+                                : log.action && log.action.includes('CREATE')
+                                ? '#FF6B6B'
+                                : '#FFD700',
+                              padding: '2px 8px',
+                              borderRadius: '4px',
+                              fontSize: '0.72rem',
+                              fontWeight: '700',
+                              fontFamily: 'monospace',
+                            }}
+                          >
+                            {log.action}
+                          </span>
+                        </td>
+                        <td style={{ padding: '12px 16px', color: '#AAA', textTransform: 'capitalize' }}>
+                          {log.entity} #{log.entityId}
+                        </td>
+                        <td style={{ padding: '12px 16px', color: '#FFF' }}>
+                          User #{log.userId}
+                        </td>
+                        <td style={{ padding: '12px 16px', color: '#8E8E9F', maxWidth: '280px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {log.details ? (typeof log.details === 'object' ? JSON.stringify(log.details) : String(log.details)) : 'N/A'}
+                        </td>
+                        <td style={{ padding: '12px 16px', color: '#888', fontSize: '0.75rem' }}>
+                          {new Date(log.timestamp).toLocaleString()}
                         </td>
                       </tr>
                     ))

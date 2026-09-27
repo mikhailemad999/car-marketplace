@@ -5,6 +5,7 @@ import { Payment, PaymentStatus } from '../entities/payment.entity';
 import { Listing, ListingStatus } from '../entities/listing.entity';
 import { AuditLog } from '../entities/audit-log.entity';
 import { NotFoundException } from '@nestjs/common';
+import { NotificationsService } from '../notifications/notifications.service';
 
 describe('PaymentsService', () => {
   let service: PaymentsService;
@@ -29,6 +30,10 @@ describe('PaymentsService', () => {
       save: jest.fn().mockResolvedValue(true),
     };
 
+    const mockNotificationsService = {
+      createNotification: jest.fn().mockResolvedValue(true),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         PaymentsService,
@@ -43,6 +48,10 @@ describe('PaymentsService', () => {
         {
           provide: getRepositoryToken(AuditLog),
           useValue: mockAuditRepo,
+        },
+        {
+          provide: NotificationsService,
+          useValue: mockNotificationsService,
         },
       ],
     }).compile();

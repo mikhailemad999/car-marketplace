@@ -6,6 +6,8 @@ import { Listing, ListingStatus } from '../entities/listing.entity';
 import { AuditLog } from '../entities/audit-log.entity';
 import { CreatePaymentDto } from './dto/create-payment.dto';
 
+import { NotificationsService } from '../notifications/notifications.service';
+
 @Injectable()
 export class PaymentsService {
   constructor(
@@ -15,6 +17,7 @@ export class PaymentsService {
     private readonly listingRepository: Repository<Listing>,
     @InjectRepository(AuditLog)
     private readonly auditLogRepository: Repository<AuditLog>,
+    private readonly notificationsService: NotificationsService,
   ) {}
 
   async create(dto: CreatePaymentDto, buyerId: number) {
@@ -51,6 +54,20 @@ export class PaymentsService {
         details: { amount: dto.amount, listingId: dto.listingId, txnId: savedPayment.providerTxnId },
       }),
     );
+
+    // Notify buyer
+    await this.notificationsService.createNotification(
+      buyerId,
+      `Escrow reservation payment of $${Number(dto.amount).toLocaleString()} confirmed for ${listing.title}. Transaction Ref: ${savedPayment.providerTxnId}.`,
+    );
+
+    // Notify seller
+    if (listing.sellerId && listing.sellerId !== buyerId) {
+      await this.notificationsService.createNotification(
+        listing.sellerId,
+        `Escrow Reservation Alert: A buyer deposited $${Number(dto.amount).toLocaleString()} to hold your ${listing.title}!`,
+      );
+    }
 
     return savedPayment;
   }

@@ -9,6 +9,9 @@ import { AuthModal } from './components/AuthModal';
 import { VehicleComparator } from './components/VehicleComparator';
 import { FinanceCalculatorModal } from './components/FinanceCalculatorModal';
 import { TailorMadeAtelierModal } from './components/TailorMadeAtelierModal';
+import { NotificationCenterModal } from './components/NotificationCenterModal';
+import { InspectionCertificateModal } from './components/InspectionCertificateModal';
+import { WishlistModal } from './components/WishlistModal';
 import { Zap, Cpu, Gauge, Wind, ShieldCheck, Database, CheckCircle2, ChevronRight, Scale, Calculator, Sparkles } from 'lucide-react';
 
 export const App: React.FC = () => {
@@ -24,6 +27,13 @@ export const App: React.FC = () => {
   const [financeSelectedCar, setFinanceSelectedCar] = useState<CarListing | null>(null);
   const [isAtelierOpen, setIsAtelierOpen] = useState(false);
   const [isCompareOpen, setIsCompareOpen] = useState(false);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const [unreadNotificationsCount, setUnreadNotificationsCount] = useState(2);
+  const [isWishlistOpen, setIsWishlistOpen] = useState(false);
+  const [wishlistCars, setWishlistCars] = useState<CarListing[]>([]);
+  const [wishlistIds, setWishlistIds] = useState<number[]>([1, 4]); // Pre-populate SF90 XX & 812
+  const [isCertificateOpen, setIsCertificateOpen] = useState(false);
+  const [certificateCar, setCertificateCar] = useState<CarListing | null>(null);
 
   const [inventoryRefreshKey, setInventoryRefreshKey] = useState(0);
 
@@ -68,6 +78,32 @@ export const App: React.FC = () => {
     });
   };
 
+  const handleToggleWishlist = (car: CarListing) => {
+    setWishlistIds((prev) => {
+      const exists = prev.includes(car.id);
+      if (exists) {
+        setWishlistCars((current) => current.filter((c) => c.id !== car.id));
+        return prev.filter((id) => id !== car.id);
+      } else {
+        setWishlistCars((current) => [...current, car]);
+        return [...prev, car.id];
+      }
+    });
+
+    const token = localStorage.getItem('ferrari_token');
+    if (token) {
+      fetch(`http://localhost:4000/favorites/${car.id}`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+      }).catch(() => {});
+    }
+  };
+
+  const handleOpenCertificate = (car: CarListing) => {
+    setCertificateCar(car);
+    setIsCertificateOpen(true);
+  };
+
   const handleOpenFinanceForCar = (car?: CarListing) => {
     setFinanceSelectedCar(car || null);
     setIsFinanceOpen(true);
@@ -86,6 +122,8 @@ export const App: React.FC = () => {
       <Navbar
         currentUser={currentUser}
         comparedCount={comparedCars.length}
+        unreadCount={unreadNotificationsCount}
+        wishlistCount={wishlistIds.length}
         onOpenAuth={() => setIsAuthOpen(true)}
         onLogout={handleLogout}
         onOpenSeller={() => setIsSellerOpen(true)}
@@ -93,6 +131,8 @@ export const App: React.FC = () => {
         onOpenAtelier={() => setIsAtelierOpen(true)}
         onOpenFinance={() => handleOpenFinanceForCar()}
         onOpenCompare={() => setIsCompareOpen(true)}
+        onOpenNotifications={() => setIsNotificationsOpen(true)}
+        onOpenWishlist={() => setIsWishlistOpen(true)}
         onScrollToSection={scrollToSection}
       />
 
@@ -120,6 +160,9 @@ export const App: React.FC = () => {
         comparedCars={comparedCars}
         onToggleCompare={handleToggleCompare}
         refreshTrigger={inventoryRefreshKey}
+        wishlistIds={wishlistIds}
+        onToggleWishlist={handleToggleWishlist}
+        onOpenCertificate={handleOpenCertificate}
       />
 
       {/* Engineering Showcase Section */}
@@ -392,9 +435,44 @@ export const App: React.FC = () => {
           }}
           onPaymentSuccess={() => {
             setInventoryRefreshKey((prev) => prev + 1);
+            setUnreadNotificationsCount((prev) => prev + 1);
           }}
+          onOpenCertificate={handleOpenCertificate}
+          isWishlisted={wishlistIds.includes(selectedCar.id)}
+          onToggleWishlist={handleToggleWishlist}
         />
       )}
+
+      {/* Notification Center Modal */}
+      <NotificationCenterModal
+        isOpen={isNotificationsOpen}
+        onClose={() => setIsNotificationsOpen(false)}
+        currentUser={currentUser}
+        onRefreshUnread={(count) => setUnreadNotificationsCount(count)}
+      />
+
+      {/* 101-Point Inspection Certificate Modal */}
+      <InspectionCertificateModal
+        car={certificateCar}
+        onClose={() => {
+          setIsCertificateOpen(false);
+          setCertificateCar(null);
+        }}
+      />
+
+      {/* Wishlist Dream Garage Modal */}
+      <WishlistModal
+        isOpen={isWishlistOpen}
+        onClose={() => setIsWishlistOpen(false)}
+        savedCars={wishlistCars}
+        onSelectCar={(car) => setSelectedCar(car)}
+        onRemoveFavorite={(id) => {
+          setWishlistIds((prev) => prev.filter((x) => x !== id));
+          setWishlistCars((prev) => prev.filter((c) => c.id !== id));
+        }}
+        onToggleCompare={handleToggleCompare}
+        comparedCars={comparedCars}
+      />
 
       {isSellerOpen && (
         <SellerModal

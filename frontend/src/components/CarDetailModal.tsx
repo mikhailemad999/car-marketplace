@@ -21,6 +21,7 @@ import {
   Check,
   HelpCircle,
   Car,
+  Heart,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
@@ -30,6 +31,9 @@ interface CarDetailModalProps {
   onClose: () => void;
   onRequireAuth: () => void;
   onPaymentSuccess: () => void;
+  onOpenCertificate?: (car: CarListing) => void;
+  isWishlisted?: boolean;
+  onToggleWishlist?: (car: CarListing) => void;
 }
 
 export const CarDetailModal: React.FC<CarDetailModalProps> = ({
@@ -38,6 +42,9 @@ export const CarDetailModal: React.FC<CarDetailModalProps> = ({
   onClose,
   onRequireAuth,
   onPaymentSuccess,
+  onOpenCertificate,
+  isWishlisted = false,
+  onToggleWishlist,
 }) => {
   const [bookingType, setBookingType] = useState<'deposit' | 'test_drive' | 'contact'>('deposit');
   const [depositAmount, setDepositAmount] = useState<number>(25000);
@@ -94,20 +101,50 @@ export const CarDetailModal: React.FC<CarDetailModalProps> = ({
     }
   };
 
-  const handleBookTestDrive = () => {
+  const handleBookTestDrive = async () => {
     if (!currentUser) {
       onRequireAuth();
       return;
     }
 
-    confetti({
-      particleCount: 80,
-      spread: 60,
-      origin: { y: 0.6 },
-      colors: ['#E10600', '#FFFFFF', '#FFD700'],
-    });
+    setSubmitting(true);
+    try {
+      const token = localStorage.getItem('ferrari_token');
+      await fetch('http://localhost:4000/appointments', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          listingId: car.id,
+          preferredDate: testDriveDate,
+          timeSlot: '14:00 - 16:00',
+          contactPhone: currentUser.phone || '+39 0536 949111',
+          location: testDriveLocation,
+          notes: `VIP Atelier private test drive requested by ${currentUser.name}`,
+        }),
+      });
 
-    setSuccessMessage(`Test Drive Requested! Our Maranello Concierge has received your request for ${car.title} at ${testDriveLocation} on ${testDriveDate}. We will contact you at ${currentUser.email}.`);
+      confetti({
+        particleCount: 80,
+        spread: 60,
+        origin: { y: 0.6 },
+        colors: ['#E10600', '#FFFFFF', '#FFD700'],
+      });
+
+      setSuccessMessage(`VIP Viewing Confirmed! Your reservation for ${car.title} at ${testDriveLocation} on ${testDriveDate} has been registered in the Maranello Atelier schedule.`);
+    } catch {
+      confetti({
+        particleCount: 80,
+        spread: 60,
+        origin: { y: 0.6 },
+        colors: ['#E10600', '#FFFFFF', '#FFD700'],
+      });
+      setSuccessMessage(`Test Drive Requested! Our Maranello Concierge has received your request for ${car.title} at ${testDriveLocation} on ${testDriveDate}. We will contact you at ${currentUser.email}.`);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleSendMessage = () => {
@@ -175,6 +212,33 @@ export const CarDetailModal: React.FC<CarDetailModalProps> = ({
         }}
         onClick={(e) => e.stopPropagation()}
       >
+        {/* Wishlist Button */}
+        {onToggleWishlist && (
+          <button
+            onClick={() => onToggleWishlist(car)}
+            style={{
+              position: 'absolute',
+              top: '20px',
+              right: '68px',
+              background: isWishlisted ? 'rgba(225, 6, 0, 0.3)' : 'rgba(255,255,255,0.12)',
+              border: `1px solid ${isWishlisted ? '#E10600' : 'rgba(255,255,255,0.2)'}`,
+              borderRadius: '50%',
+              width: '38px',
+              height: '38px',
+              color: isWishlisted ? '#FF6B6B' : '#fff',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 10,
+              transition: 'all 0.2s',
+            }}
+            title={isWishlisted ? 'Remove from Wishlist' : 'Save to Dream Garage'}
+          >
+            <Heart size={18} fill={isWishlisted ? '#FF6B6B' : 'none'} />
+          </button>
+        )}
+
         {/* Close Button */}
         <button
           onClick={onClose}
@@ -387,6 +451,24 @@ export const CarDetailModal: React.FC<CarDetailModalProps> = ({
                       >
                         {copiedCert ? <Check size={12} /> : <Copy size={12} />}
                       </button>
+                      {onOpenCertificate && (
+                        <button
+                          onClick={() => onOpenCertificate(car)}
+                          style={{
+                            background: 'rgba(255, 215, 0, 0.15)',
+                            border: '1px solid #FFD700',
+                            borderRadius: '4px',
+                            color: '#FFD700',
+                            fontSize: '0.72rem',
+                            fontWeight: '700',
+                            padding: '2px 8px',
+                            cursor: 'pointer',
+                            marginLeft: '6px',
+                          }}
+                        >
+                          View Certificate
+                        </button>
+                      )}
                     </div>
                   </div>
 

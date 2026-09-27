@@ -15,6 +15,7 @@ import {
   ShieldCheck,
   MapPin,
   FileCheck,
+  Heart,
 } from 'lucide-react';
 
 export interface CarListing {
@@ -65,6 +66,9 @@ interface SupercarInventoryProps {
   comparedCars: CarListing[];
   onToggleCompare: (car: CarListing) => void;
   refreshTrigger?: number;
+  wishlistIds?: number[];
+  onToggleWishlist?: (car: CarListing) => void;
+  onOpenCertificate?: (car: CarListing) => void;
 }
 
 export const SupercarInventory: React.FC<SupercarInventoryProps> = ({
@@ -74,6 +78,9 @@ export const SupercarInventory: React.FC<SupercarInventoryProps> = ({
   comparedCars,
   onToggleCompare,
   refreshTrigger,
+  wishlistIds = [],
+  onToggleWishlist,
+  onOpenCertificate,
 }) => {
   const [listings, setListings] = useState<CarListing[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -86,6 +93,7 @@ export const SupercarInventory: React.FC<SupercarInventoryProps> = ({
 
   const CATEGORIES = [
     { id: 'all', label: 'All Fleet (18 Supercars)' },
+    { id: 'wishlist', label: `❤️ Saved Garage (${wishlistIds.length})` },
     { id: 'hybrid', label: '⚡ Plug-in Hybrid (SF90 / 296)' },
     { id: 'v12', label: '🔥 Atmospheric V12 (812 / SP3 / Monza)' },
     { id: 'heritage', label: '🏆 Hypercar Legends (F40 / F50 / Enzo)' },
@@ -127,7 +135,9 @@ export const SupercarInventory: React.FC<SupercarInventoryProps> = ({
         let filtered = data.data as CarListing[];
 
         // Filter by powertrain categories
-        if (selectedCategory === 'hybrid') {
+        if (selectedCategory === 'wishlist') {
+          filtered = filtered.filter((c) => wishlistIds.includes(c.id));
+        } else if (selectedCategory === 'hybrid') {
           filtered = filtered.filter(
             (c) => c.model.includes('SF90') || c.model.includes('296') || c.model.includes('LaFerrari'),
           );
@@ -162,7 +172,7 @@ export const SupercarInventory: React.FC<SupercarInventoryProps> = ({
 
   useEffect(() => {
     fetchListings();
-  }, [selectedCategory, selectedModel, searchQuery, maxPrice, sortBy, sortOrder, refreshTrigger]);
+  }, [selectedCategory, selectedModel, searchQuery, maxPrice, sortBy, sortOrder, refreshTrigger, wishlistIds]);
 
   const formatPrice = (price: string | number) => {
     return Number(price).toLocaleString('en-US', {
@@ -448,7 +458,15 @@ export const SupercarInventory: React.FC<SupercarInventoryProps> = ({
                             borderRadius: '4px',
                             width: 'fit-content',
                             boxShadow: '0 2px 8px rgba(0,0,0,0.5)',
+                            cursor: onOpenCertificate ? 'pointer' : 'default',
                           }}
+                          onClick={(e) => {
+                            if (onOpenCertificate) {
+                              e.stopPropagation();
+                              onOpenCertificate(car);
+                            }
+                          }}
+                          title="Click to view official 101-Point Inspection Certificate"
                         >
                           <FileCheck size={12} />
                           {car.certificateNumber}
@@ -456,34 +474,56 @@ export const SupercarInventory: React.FC<SupercarInventoryProps> = ({
                       )}
                     </div>
 
-                    {/* Compare Checkbox Icon Button */}
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onToggleCompare(car);
-                      }}
-                      style={{
-                        position: 'absolute',
-                        top: '14px',
-                        right: '14px',
-                        background: isCompared ? '#E10600' : 'rgba(0,0,0,0.6)',
-                        border: isCompared ? '1px solid #fff' : '1px solid rgba(255,255,255,0.2)',
-                        borderRadius: '6px',
-                        padding: '6px 10px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '6px',
-                        color: '#fff',
-                        fontSize: '0.75rem',
-                        fontWeight: '700',
-                        cursor: 'pointer',
-                        zIndex: 5,
-                      }}
-                      title="Add to Comparison"
-                    >
-                      <Scale size={14} />
-                      {isCompared ? 'Comparing' : 'Compare'}
-                    </button>
+                    {/* Action buttons (Wishlist & Compare) */}
+                    <div style={{ position: 'absolute', top: '14px', right: '14px', display: 'flex', gap: '8px', zIndex: 5 }}>
+                      {onToggleWishlist && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onToggleWishlist(car);
+                          }}
+                          style={{
+                            background: wishlistIds.includes(car.id) ? 'rgba(225, 6, 0, 0.45)' : 'rgba(0,0,0,0.65)',
+                            border: wishlistIds.includes(car.id) ? '1px solid #E10600' : '1px solid rgba(255,255,255,0.2)',
+                            borderRadius: '6px',
+                            width: '32px',
+                            height: '32px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: wishlistIds.includes(car.id) ? '#FF6B6B' : '#fff',
+                            cursor: 'pointer',
+                          }}
+                          title={wishlistIds.includes(car.id) ? 'Remove from Saved Garage' : 'Save to Dream Garage'}
+                        >
+                          <Heart size={15} fill={wishlistIds.includes(car.id) ? '#FF6B6B' : 'none'} />
+                        </button>
+                      )}
+
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onToggleCompare(car);
+                        }}
+                        style={{
+                          background: isCompared ? '#E10600' : 'rgba(0,0,0,0.6)',
+                          border: isCompared ? '1px solid #fff' : '1px solid rgba(255,255,255,0.2)',
+                          borderRadius: '6px',
+                          padding: '6px 10px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          color: '#fff',
+                          fontSize: '0.75rem',
+                          fontWeight: '700',
+                          cursor: 'pointer',
+                        }}
+                        title="Add to Comparison"
+                      >
+                        <Scale size={14} />
+                        {isCompared ? 'Comparing' : 'Compare'}
+                      </button>
+                    </div>
                   </div>
 
                   {/* Body Content */}

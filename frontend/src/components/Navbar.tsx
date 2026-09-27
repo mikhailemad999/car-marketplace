@@ -1,9 +1,10 @@
-import React from 'react';
-import { Shield, User as UserIcon, PlusCircle, LayoutDashboard, LogOut, KeyRound, Sparkles, Calculator, Scale } from 'lucide-react';
+import { Shield, User as UserIcon, PlusCircle, LayoutDashboard, LogOut, KeyRound, Sparkles, Calculator, Scale, Bell, Heart } from 'lucide-react';
 
 interface NavbarProps {
   currentUser: any;
   comparedCount: number;
+  unreadCount?: number;
+  wishlistCount?: number;
   onOpenAuth: () => void;
   onLogout: () => void;
   onOpenSeller: () => void;
@@ -11,12 +12,16 @@ interface NavbarProps {
   onOpenAtelier: () => void;
   onOpenFinance: () => void;
   onOpenCompare: () => void;
+  onOpenNotifications: () => void;
+  onOpenWishlist: () => void;
   onScrollToSection: (id: string) => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
   currentUser,
   comparedCount,
+  unreadCount = 0,
+  wishlistCount = 0,
   onOpenAuth,
   onLogout,
   onOpenSeller,
@@ -24,6 +29,8 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenAtelier,
   onOpenFinance,
   onOpenCompare,
+  onOpenNotifications,
+  onOpenWishlist,
   onScrollToSection,
 }) => {
   return (
@@ -108,6 +115,38 @@ export const Navbar: React.FC<NavbarProps> = ({
             <Calculator size={14} />
             Leasing
           </button>
+          <button
+            onClick={onOpenWishlist}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: '#FF6B6B',
+              fontSize: '0.88rem',
+              fontWeight: '600',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              position: 'relative',
+            }}
+          >
+            <Heart size={16} fill={wishlistCount > 0 ? '#FF6B6B' : 'none'} />
+            Wishlist
+            {wishlistCount > 0 && (
+              <span
+                style={{
+                  background: '#E10600',
+                  color: '#FFF',
+                  fontSize: '0.65rem',
+                  padding: '1px 6px',
+                  borderRadius: '10px',
+                  fontWeight: '800',
+                }}
+              >
+                {wishlistCount}
+              </span>
+            )}
+          </button>
           {comparedCount > 0 && (
             <button
               onClick={onOpenCompare}
@@ -121,6 +160,49 @@ export const Navbar: React.FC<NavbarProps> = ({
 
         {/* User Action Area */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+          {/* Notifications Bell */}
+          <button
+            onClick={onOpenNotifications}
+            style={{
+              position: 'relative',
+              background: 'rgba(255, 255, 255, 0.05)',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
+              borderRadius: '50%',
+              width: '40px',
+              height: '40px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: unreadCount > 0 ? '#FFD700' : '#AAA',
+              cursor: 'pointer',
+              transition: 'all 0.2s',
+            }}
+            title="Concierge Notifications"
+          >
+            <Bell size={18} />
+            {unreadCount > 0 && (
+              <span
+                style={{
+                  position: 'absolute',
+                  top: '-2px',
+                  right: '-2px',
+                  background: '#E10600',
+                  color: '#FFF',
+                  fontSize: '0.62rem',
+                  width: '18px',
+                  height: '18px',
+                  borderRadius: '50%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontWeight: '900',
+                  border: '2px solid #0A0A0C',
+                }}
+              >
+                {unreadCount}
+              </span>
+            )}
+          </button>
           {currentUser ? (
             <>
               {(currentUser.role === 'seller' || currentUser.role === 'admin') && (
